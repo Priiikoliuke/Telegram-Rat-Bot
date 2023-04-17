@@ -24,9 +24,9 @@ namespace Telegram_Rat_Bot
 {
     public partial class Form1 : Form
     {
-        private static string token { get; set; } = "5843510473:AAHJjweXF5R3H4gdWLj_SFOtOs5a1kDOeyE";
+        private static string token { get; set; } = "Token";
         private static int step = 0;
-        private static string id = "836734915";
+        private static string id = "ID";
         private static string link;
 
         public Form1()
